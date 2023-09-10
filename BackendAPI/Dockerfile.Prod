@@ -1,0 +1,32 @@
+##### Imagem para rodar o projeto
+FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine AS base
+WORKDIR /app
+
+ENV ASPNETCORE_ENVIRONMENT Production
+# ENV ASPNETCORE_URLS=http://+80
+# ENV ASPNETCORE_HTTPS_PORT=8001
+# ENV ASPNETCORE_Kestrel__Certificates__Default__Password="<CREDENTIAL_PLACEHOLDER>"
+# ENV ASPNETCORE_Kestrel__Certificates__Default__Path=c:\https\aspnetapp.pfx
+ENV ORIGIN_HOST="*"
+EXPOSE 80
+EXPOSE 443
+
+##### Etapa de compilação
+FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS build
+WORKDIR /src
+COPY src/BackendAPI.csproj BackendAPI/
+RUN dotnet restore "BackendAPI/BackendAPI.csproj"
+COPY src BackendAPI/
+WORKDIR /src/BackendAPI
+# RUN dotnet dev-certs https --trust
+RUN dotnet build "BackendAPI.csproj" -c Release -o /app/build
+
+##### Etapa de publicação
+FROM build AS publish
+RUN dotnet publish "BackendAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+##### Etapa final
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "BackendAPI.dll"]

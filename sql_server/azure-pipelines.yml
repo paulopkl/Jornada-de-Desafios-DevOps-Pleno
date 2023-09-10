@@ -1,0 +1,33 @@
+trigger:
+  - main
+  - develop
+
+resources:
+  - repo: self
+
+variables:
+  tag: '$(Build.BuildId)'
+  dockerRegistryServiceConnection: ''
+  imageRepository: 'company_sql_server'
+  containerRegistry: 'paulocr.azurecr.io'
+  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile.Prod'
+  vmImageName: 'ubuntu-latest'
+
+stages:
+  - stage: Build
+    displayName: Build and Push Image
+    jobs:
+      - job: Build
+        displayName: Build
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - task: Docker@2
+            displayName: Build and push an image to Azure Container Registry
+            inputs:
+              command: buildAndPush
+              repository: $(imageRepository)
+              dockerfile: '$(Build.SourcesDirectory)/Dockerfile.Prod'
+              containerRegistry: $(dockerRegistryServiceConnection)
+              tags: |
+                $(tag)

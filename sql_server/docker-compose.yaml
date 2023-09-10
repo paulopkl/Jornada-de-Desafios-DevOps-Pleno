@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  sqlserver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sqlserver
+    hostname: sqlserver
+    ports:
+        - 1433:1433
+    environment:
+      SA_PASSWORD: "SqlServer2019!"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+    volumes:
+      - ./data:/var/opt/mssql/data

@@ -1,0 +1,73 @@
+version: "3.8"
+
+services:
+  redis:
+    image: redis:5.0.4
+    container_name: redis
+    hostname: redis
+    ports:
+      - 6379:6379
+    networks:
+      - backend
+
+  sqlserver:
+    image: paulocr.azurecr.io/sqlserver:latest
+    # image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: sqlserver
+    hostname: sqlserver
+    ports:
+      - 1433:1433
+    environment:
+      SA_PASSWORD: "SqlServer2019!"
+      MSSQL_PID: "Developer"
+      # ACCEPT_EULA: "Y"
+    volumes:
+      - ./sql_Server/data:/var/opt/mssql/data
+
+  # mssqltools:
+  #   image: mcr.microsoft.com/mssql-tools
+  #   depends_on:
+  #     - sqlserver
+  #   volumes:
+  #     - ./sql_Server/01-BaseGeografica.sql:/tmp/01-BaseGeografica.sql
+  #     - ./02-BaseGeografica.sql:/tmp/02-BaseGeografica.sql
+  #     - ./sql_Server/init-basegeografica.sh:/tmp/init-basegeografica.sh
+  #   command: /bin/bash ./tmp/init-basegeografica.sh
+
+  dotnet-backend-app-dev:
+    depends_on:
+      - redis
+      - sqlserver
+    container_name: dotnet-backend-app-dev
+    build:
+      context: .
+      dockerfile: Dockerfile.Dev
+    ports:
+      - 3333:80
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ORIGIN_HOST: "*"
+      SQL_SERVER_DATABASE_HOST: "sqlserver"
+      SQL_SERVER_DATABASE_NAME: "dbfenix"
+      REDIS_HOST: redis
+    networks:
+      - backend
+  
+  # dotnet-backend-app-prod:
+  #   depends_on:
+  #     - redis
+  #   container_name: dotnet-backend-app-prod
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.Prod
+  #   ports:
+  #     - 80:80
+  #   environment:
+  #     ASPNETCORE_ENVIRONMENT: Production
+  #     ORIGIN_HOST: "*"
+  #   # volumes:
+  #   #   - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+  #   #   - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+
+networks:
+  backend: {}

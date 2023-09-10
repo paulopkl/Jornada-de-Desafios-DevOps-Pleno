@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-dotnet-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-dotnet
+  template:
+    metadata:
+      labels:
+        app: backend-dotnet
+    spec:
+      containers:
+        - name: backend-dotnet
+          image: paulocr.azurecr.io/backend-dotnet:latest
+          imagePullPolicy: Always
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 80
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: ORIGIN_HOST
+              value: "http://frontend-angular-service:80"
+            - name: SQL_SERVER_DATABASE_HOST
+              value: "sqlserver-service"
+            - name: SQL_SERVER_DATABASE_NAME
+              value: "dbfenix"
+            - name: REDIS_HOST
+              value: "redis"
+        - name: redis
+          image: redis:5.0.4
+          resources:
+            limits:
+              cpu: "1"
+              memory: 2Gi
+            requests:
+              cpu: "0.5"
+              memory: 1Gi
+          ports:
+            - containerPort: 6379
+          volumeMounts:
+            - mountPath: /redis-master-data
+              name: data
+            - mountPath: /redis-master
+              name: config
+      volumes:
+        - name: data
+          emptyDir: {}
+        - name: config
+          configMap:
+            name: example-redis-config
+            items:
+              - key: redis-config
+                path: redis.conf
