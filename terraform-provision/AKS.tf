@@ -1,13 +1,18 @@
-data "azuread_client_config" "current" {}
-
 # data "azuread_application" "app_name" {
 #     display_name = var.azure_application_name
 # }
 
+# resource "azurerm_application_security_group" "" {
+
+# }
+
+output "azuread_client_config" {
+  value = data.azuread_client_config.current
+}
+
 resource "azuread_application" "app_name" {
   display_name = var.azure_application_name
-  # homepage      = "http://example-app"
-  # identifier_uris = ["http://example-app"]
+  
   owners = [
     data.azuread_client_config.current.object_id
   ]

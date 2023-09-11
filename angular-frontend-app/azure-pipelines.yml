@@ -9,7 +9,7 @@ variables:
   tag: '$(Build.BuildId)'
   dockerRegistryServiceConnection: ''
   imageRepository: 'company_sql_server'
-  containerRegistry: 'paulocr.azurecr.io'
+  containerRegistry: '< Container Registry DNS >'
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile.Prod'
   vmImageName: 'ubuntu-latest'
 
@@ -23,9 +23,47 @@ stages:
           vmImage: ubuntu-latest
         steps:
           - task: Docker@2
-            displayName: Build an image
+            displayName: Build and push an image to container registry
             inputs:
-              command: build
-              dockerfile: '$(Build.SourcesDirectory)/Dockerfile.Prod'
+              command: buildAndPush
+              repository: $(imageRepository)
+              dockerfile: $(dockerfilePath)
+              containerRegistry: $(dockerRegistryServiceConnection)
               tags: |
                 $(tag)
+
+          - upload: manifests
+            artifact: manifests
+
+  - stage: Deploy
+    displayName: Deploy stage
+    dependsOn: Build
+
+    jobs:
+      - deployment: Deploy
+        displayName: Deploy
+        pool:
+          vmImage: $(vmImageName)
+        environment: 'angular.default'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: KubernetesManifest@0
+                  displayName: Create imagePullSecret
+                  inputs:
+                    action: createSecret
+                    secretName: $(imagePullSecret)
+                    dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
+
+                - task: KubernetesManifest@0
+                  displayName: Deploy to Kubernetes cluster
+                  inputs:
+                    action: deploy
+                    manifests: |
+                      $(Pipeline.Workspace)/manifests/deployment.yml
+                      $(Pipeline.Workspace)/manifests/service.yml
+                    imagePullSecrets: |
+                      $(imagePullSecret)
+                    containers: |
+                      $(containerRegistry)/$(imageRepository):$(tag)

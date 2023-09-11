@@ -4,7 +4,7 @@ terraform {
   required_providers {
     # azuredevops = {
     #   source  = "microsoft/azuredevops"
-    #   version = "0.9.0"
+    #   version = ">= 0.1.0"
     # }
 
     azurerm = {
@@ -27,7 +27,9 @@ terraform {
 }
 
 # provider "azuredevops" {
-#   # Configuration options
+#   alias = "azuredevops2"
+#   org_service_url = var.azure_devops["org_service_url"]
+#   personal_access_token = var.azure_devops["personal_access_token"]
 # }
 
 provider "azurerm" {
@@ -40,12 +42,4 @@ provider "azurerm" {
 
 provider "azuread" {
   # Configuration options
-  # tenant_id = "0caec664-3cc9-4772-8f07-bbc7ea6c421b"
 }
-
-# resource "random_pet" "prefix" {}
-
-# resource "azuredevops_project" "project" {
-#   name        = "devops-infra"
-#   description = "Project Description"
-# }

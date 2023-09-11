@@ -10,10 +10,8 @@ resource "azurerm_container_registry" "acr" {
     admin_enabled            = true
 }
 
-# data "azurerm_client_config" "current" {}
-
 # resource "azurerm_role_assignment" "acr" {
 #   scope                = azurerm_container_registry.acr.id
 #   role_definition_name = "AcrPush"
-#   principal_id         = data.azurerm_client_config.current.client_id
+#   principal_id         = data.azuread_client_config.current.client_id
 # }
