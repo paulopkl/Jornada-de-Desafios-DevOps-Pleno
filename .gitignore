@@ -3,3 +3,5 @@ create-angular-project.txt
 create-api-project.txt
 secret.txt
 sql_server/src/data
+**/terraform-provision/terraform.tfvars
+.terraform.lock.hcl
