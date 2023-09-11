@@ -69,15 +69,3 @@ variable "azure_devops" {
     visibility            = "private"
   }
 }
-
-variable "ado_github_repo" {
-  type = string
-  description = "Name of the repository in the format <GitHub Org>/<RepoName>"
-  default = ""
-}
-
-variable "ado_pipeline_yaml_path" {
-  type = string
-  description = "Path to the yaml for the first pipeline"
-  default = "/azure-pipelines.yml"
-}
